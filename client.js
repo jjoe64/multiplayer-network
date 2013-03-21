@@ -26,6 +26,40 @@ Player.prototype.setData = function(d) {
 };
 
 
+/** Timeline **/
+var Timeline = function() {
+	this.currentTick = 0;
+	this.curWorldState = null;
+	this.nextWorldState = null;
+	this.nextNextWorldState = null; /* just in case server is too fast */
+};
+Timeline.prototype.update = function(d) {
+	// current tick based on servers tickrate (133)
+	this.currentTick += d/133;
+};
+Timeline.prototype.getWorldState = function() {
+	if (!this.curWorldUpdate || !this.nextWorldUpdate) return;
+	
+	if (this.currentTick >= this.nextWorldUpdate.tick) {
+		this.curWorldUpdate = this.nextWorldUpdate;
+	}
+	if (this.currentTick >= this.curWorldUpdate.tick && this.curWorldUpdate.processsed === false) {
+		curWorldUpdate.processsed = true;
+		return curWorldUpdate;
+	}
+	return null;
+};
+Timeline.prototype.addWorldState = function(world) {
+	world.processed = false;
+	if (!this.curWorldUpdate) {
+		this.curWorldUpdate = world;
+		this.currentTick = world.tick;
+	} else {
+		this.nextWorldUpdate = world;
+	}
+};
+
+
 (function() {
 	var CLIENT_CMDRATE = 1000/30;
 	
@@ -33,7 +67,6 @@ Player.prototype.setData = function(d) {
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	var _this = this;
-	var tick=0;
 	
 	var p1 = new Player(new Date().getTime()); // me
 	
@@ -82,7 +115,7 @@ Player.prototype.setData = function(d) {
 		time = new Date().getTime();
 		
 		// current tick based on servers tickrate (133)
-		tick += d/133;
+		timeline.update(d);
 	}, 100);
 	
 	// client update rate
@@ -94,15 +127,11 @@ Player.prototype.setData = function(d) {
 	}, CLIENT_CMDRATE);
 	
 	function updateWorld() {
-		if (!curWorldUpdate || !nextWorldUpdate) return;
-		
-		if (tick >= nextWorldUpdate.tick) {
-			curWorldUpdate = nextWorldUpdate;
-		}
-		if (tick >= curWorldUpdate.tick && curWorldUpdate.processsed === false) {
+		var world = timeline.getWorldState();
+		if (world) {
 			// start
 			// set
-			curWorldUpdate.players.forEach(function(pl) {
+			world.players.forEach(function(pl) {
 				// find player
 				var localPl;
 				players.forEach(function(_pl) {
@@ -118,7 +147,6 @@ Player.prototype.setData = function(d) {
 				}
 				localPl.setData(pl);
 			});
-			curWorldUpdate.processsed = true;
 		}
 	}
 	
@@ -142,13 +170,7 @@ Player.prototype.setData = function(d) {
 	}
 
 	function incomingWorldUpdate(world) {
-		world.processed = false;
-		if (!curWorldUpdate) {
-			curWorldUpdate = world;
-			tick = world.tick;
-		} else {
-			nextWorldUpdate = world;
-		}
+		timeline.addWorldSate(world);
 	}
 
 	function connect() {

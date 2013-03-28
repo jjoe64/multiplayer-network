@@ -12,6 +12,8 @@ var Player = function(id) {
 Player.prototype.update = function(d) {
 	this.position[0] += this.velocity[0] *d;
 	this.position[1] += this.velocity[1] *d;
+	
+	console.log('updateing ... '+this.velocity[0]+' * '+d);
 };
 Player.prototype.toData = function() {
 	return {
@@ -30,7 +32,7 @@ Player.prototype.setData = function(d) {
 
 
 (function() {
-	var TICK_RATE = 133;
+	var TICK_RATE = 1000;//133;
 	var tick = 0;
 	var clients = [];
 	var _this = this;
@@ -45,6 +47,9 @@ Player.prototype.setData = function(d) {
 		sayHello(cl);
 		socket.on('hello', function(data) {
 			incomingHello.call(_this, cl, data);
+		});
+		socket.on('updatePlayerState', function(data) {
+			incomingUpdatePlayerState.call(_this, cl, data);
 		});
 /*
 socket.emit('news', { hello: 'world' });
@@ -67,9 +72,25 @@ console.log(data);
 		console.log('player logged in ');
 	}
 	
+	function incomingUpdatePlayerState(client, data) {
+		if (client.player) {
+			client.player.setData(data);
+		}
+	}
+	
+	function runPhysic(d) {
+		clients.forEach(function(cl) {
+			// update player pos
+			var p = cl.player;
+			if (p) {
+				p.update.call(p, d);
+			}
+		});
+	}
+	
 	function doTick(d) {
 		//console.log('tick');
-		//runPhysic();
+		runPhysic(d);
 		sendSnapshots();
 		tick++;
 	}
@@ -97,8 +118,12 @@ console.log(data);
 	
 	// main loop
 	var _this = this;
+	var time = new Date().getTime();
 	setInterval(function() {
-		doTick.call(_this);
+		var d = new Date().getTime()-time;
+		doTick.call(_this, d);
+		
+		time += d;
 	}, TICK_RATE);
 
 })();

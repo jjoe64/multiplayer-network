@@ -116,7 +116,7 @@ Timeline.prototype.addWorldState = function(world) {
 	setInterval(function() {
 		var d = new Date().getTime()-time;
 		updateWorld();
-		interpolate(d);
+		//interpolate(d);
 		drawPlayers();
 		time = new Date().getTime();
 		
@@ -128,7 +128,7 @@ Timeline.prototype.addWorldState = function(world) {
 	setInterval(function() {
 		/* The client creates user commands from sampling input devices (snapshot of the current keyboard and mouse state) and sends command packets at a certain rate of packets per second (usually 30). (cl_cmdrate) */
 		if (socket) {
-			
+			socket.emit('updatePlayerState', p1.toData());
 		}
 	}, CLIENT_CMDRATE);
 	

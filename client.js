@@ -38,24 +38,30 @@ Timeline.prototype.update = function(d) {
 	this.currentTick += d/133;
 };
 Timeline.prototype.getWorldState = function() {
-	if (!this.curWorldUpdate || !this.nextWorldUpdate) return;
+	if (!this.curWorldState || !this.nextWorldState) return;
 	
-	if (this.currentTick >= this.nextWorldUpdate.tick) {
-		this.curWorldUpdate = this.nextWorldUpdate;
+	// shifting
+	if (this.currentTick >= this.nextWorldState.tick) {
+		this.curWorldState = this.nextWorldState;
+		this.nextWorldState = this.nextNextWorldState;
+		this.nextNextWorldState = null;
 	}
-	if (this.currentTick >= this.curWorldUpdate.tick && this.curWorldUpdate.processsed === false) {
-		curWorldUpdate.processsed = true;
-		return curWorldUpdate;
+	if (this.currentTick >= this.curWorldState.tick && this.curWorldState.processed === false) {
+		this.curWorldState.processed = true;
+		return this.curWorldState;
 	}
 	return null;
 };
 Timeline.prototype.addWorldState = function(world) {
 	world.processed = false;
-	if (!this.curWorldUpdate) {
-		this.curWorldUpdate = world;
+	if (!this.curWorldState) {
+		// first worldstate
+		this.curWorldState = world;
 		this.currentTick = world.tick;
+	} else if (!this.nextWorldState) {
+		this.nextWorldState = world;
 	} else {
-		this.nextWorldUpdate = world;
+		this.nextNextWorldState = world;
 	}
 };
 
@@ -73,8 +79,8 @@ Timeline.prototype.addWorldState = function(world) {
 	var players = [
 		p1
 	];
-	var nextWorldUpdate;
-	var curWorldUpdate;
+
+	var timeline = new Timeline();
 
 	canvas.addEventListener('keydown', function(ev) {
 		console.log(ev.keyCode);
@@ -170,7 +176,7 @@ Timeline.prototype.addWorldState = function(world) {
 	}
 
 	function incomingWorldUpdate(world) {
-		timeline.addWorldSate(world);
+		timeline.addWorldState(world);
 	}
 
 	function connect() {

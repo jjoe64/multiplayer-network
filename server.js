@@ -32,7 +32,7 @@ Player.prototype.setData = function(d) {
 
 
 (function() {
-	var TICK_RATE = 1000;//133;
+	var TICK_RATE = 133;
 	var tick = 0;
 	var clients = [];
 	var _this = this;
@@ -72,9 +72,9 @@ console.log(data);
 		console.log('player logged in ');
 	}
 	
-	function incomingUpdatePlayerState(client, data) {
+	function incomingUpdatePlayerState(client, vel) {
 		if (client.player) {
-			client.player.setData(data);
+			client.player.velocity = vel;
 		}
 	}
 	

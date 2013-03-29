@@ -75,6 +75,7 @@ Timeline.prototype.addWorldState = function(world) {
 	var _this = this;
 	
 	var p1 = new Player(new Date().getTime()); // me
+	var p1Vel = [0, 0];
 	
 	var players = [
 		p1
@@ -86,19 +87,19 @@ Timeline.prototype.addWorldState = function(world) {
 		console.log(ev.keyCode);
 		if (ev.keyCode == 38) {
 			 // up
-			 p1.velocity[1] = -0.05;
+			p1Vel[1] = -0.05;
 		} else if (ev.keyCode == 40) {
 			// down
-			p1.velocity[1] = 0.05;
+			p1Vel[1] = 0.05;
 		} else if (ev.keyCode == 37) {
 			// left
-			p1.velocity[0] = -0.05;
+			p1Vel[0] = -0.05;
 		} else if (ev.keyCode == 39) {
 			// right
-			p1.velocity[0] = 0.05;
+			p1Vel[0] = 0.05;
 		} else if (ev.keyCode == 32) {
 			// stop / space
-			p1.velocity = [0, 0];
+			p1Vel = [0, 0];
 		}
 	}, true);
 	
@@ -116,9 +117,9 @@ Timeline.prototype.addWorldState = function(world) {
 	setInterval(function() {
 		var d = new Date().getTime()-time;
 		updateWorld();
-		//interpolate(d);
+		interpolate(d);
 		drawPlayers();
-		time = new Date().getTime();
+		time += d;
 		
 		// current tick based on servers tickrate (133)
 		timeline.update(d);
@@ -128,7 +129,7 @@ Timeline.prototype.addWorldState = function(world) {
 	setInterval(function() {
 		/* The client creates user commands from sampling input devices (snapshot of the current keyboard and mouse state) and sends command packets at a certain rate of packets per second (usually 30). (cl_cmdrate) */
 		if (socket) {
-			socket.emit('updatePlayerState', p1.toData());
+			socket.emit('updatePlayerState', p1Vel);
 		}
 	}, CLIENT_CMDRATE);
 	

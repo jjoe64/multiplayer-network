@@ -1,6 +1,7 @@
 'use strict';
 
 var io = require('socket.io').listen(8088);
+io.set('log level', 1);
 
 /** shared */
 var Player = function(id) {
@@ -12,8 +13,6 @@ var Player = function(id) {
 Player.prototype.update = function(d) {
 	this.position[0] += this.velocity[0] *d;
 	this.position[1] += this.velocity[1] *d;
-	
-	console.log('updateing ... '+this.velocity[0]+' * '+d);
 };
 Player.prototype.toData = function() {
 	return {
@@ -72,9 +71,20 @@ console.log(data);
 		console.log('player logged in ');
 	}
 	
+	var _counter = 0;
+	var _timerStart = new Date().getTime();
 	function incomingUpdatePlayerState(client, vel) {
 		if (client.player) {
 			client.player.velocity = vel;
+		}
+		
+		_counter++;
+		if (new Date().getTime()-_timerStart > 10000) {
+			// 10 sek
+			console.log('[SOCKET BENCHMARK] packages receivied in 10 sec: '+_counter);
+			// reset
+			_counter = 0;
+			_timerStart = new Date().getTime();
 		}
 	}
 	

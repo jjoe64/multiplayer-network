@@ -67,7 +67,7 @@ Timeline.prototype.addWorldState = function(world) {
 
 
 (function() {
-	var CLIENT_CMDRATE = 1000/30;
+	var CLIENT_CMDRATE = 1000/30; //30
 	
 	var socket;
 	var canvas = document.getElementById('canvas');
@@ -123,13 +123,24 @@ Timeline.prototype.addWorldState = function(world) {
 		
 		// current tick based on servers tickrate (133)
 		timeline.update(d);
-	}, 100);
+	}, 33);
 	
 	// client update rate
+	var _counter = 0;
+	var _timerStart = new Date().getTime();
 	setInterval(function() {
 		/* The client creates user commands from sampling input devices (snapshot of the current keyboard and mouse state) and sends command packets at a certain rate of packets per second (usually 30). (cl_cmdrate) */
 		if (socket) {
 			socket.emit('updatePlayerState', p1Vel);
+		}
+		
+		_counter++;
+		if (new Date().getTime()-_timerStart > 10000) {
+			// 10 sek
+			console.log('[SOCKET BENCHMARK] packages sent in 10 sec: '+_counter);
+			// reset
+			_counter = 0;
+			_timerStart = new Date().getTime();
 		}
 	}, CLIENT_CMDRATE);
 	

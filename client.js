@@ -28,6 +28,8 @@ Player.prototype.setData = function(d) {
 
 /** Timeline **/
 var Timeline = function() {
+	this.TICK_SIZE = 133;
+	
 	this.currentTick = 0;
 	this.curWorldState = null;
 	this.nextWorldState = null;
@@ -35,7 +37,7 @@ var Timeline = function() {
 };
 Timeline.prototype.update = function(d) {
 	// current tick based on servers tickrate (133)
-	this.currentTick += d/133;
+	this.currentTick += d/this.TICK_SIZE;
 };
 Timeline.prototype.getWorldState = function() {
 	if (!this.curWorldState || !this.nextWorldState) return;
@@ -48,6 +50,7 @@ Timeline.prototype.getWorldState = function() {
 	}
 	if (this.currentTick >= this.curWorldState.tick && this.curWorldState.processed === false) {
 		this.curWorldState.processed = true;
+		//console.log('render world state [tick: '+this.curWorldState.tick+' | vel: '+this.curWorldState.players[0].vel+']');
 		return this.curWorldState;
 	}
 	return null;
@@ -57,7 +60,10 @@ Timeline.prototype.addWorldState = function(world) {
 	if (!this.curWorldState) {
 		// first worldstate
 		this.curWorldState = world;
-		this.currentTick = world.tick;
+		
+		// set current tick
+		// client is always 1 tick behind
+		this.currentTick = world.tick - 1;
 	} else if (!this.nextWorldState) {
 		this.nextWorldState = world;
 	} else {

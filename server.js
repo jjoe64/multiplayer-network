@@ -100,8 +100,10 @@ console.log(data);
 	
 	function doTick(d) {
 		//console.log('tick');
-		runPhysic(d);
 		sendSnapshots();
+		
+		// die physic muss danach berechnet werden, sonst läuft er schon TICK_SIZE lange in die entsprechende richtung und hopft dann beim client
+		runPhysic(d);
 		tick++;
 	}
 	
@@ -124,6 +126,9 @@ console.log(data);
 		clients.forEach(function(cl) {
 			cl.socket.emit('update', snapshot);
 		});
+		
+		//if (snapshot.players.length > 0)
+		//console.log('send world state [tick: '+tick+' | vel: '+snapshot.players[0].vel+']');
 	}
 	
 	// main loop
